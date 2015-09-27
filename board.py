@@ -1,11 +1,25 @@
 import constants
 
 # MODELS ======================================================================
+class Move(object):
+    def __init__(self, piece, pos_final, board):
+        self.pos_init = piece.position
+        self.piece = piece
+        self.pos_final = pos_final
+        self.value=0
+
+    def apply(self):
+        piece.position = pos_final
+
+    def undo(self):
+        piece.position = pos_init
+
 class Board(object):
     def __init__(self, state):
         self.cells = [[None for j in xrange(8)] for i in xrange(8)]
-        self.my_pieces = []
-        
+        self.pieces[WHITE] = []
+        self.pieces[BLACK] = []
+
         PIECES = {
             'r': Rook,
             'p': Pawn,
@@ -14,7 +28,7 @@ class Board(object):
             'n': Knight,
         }
 
-        my_team = state['who_moves']
+        self.my_team = state['who_moves']
         c = state['board']
         i = 0
 
@@ -27,8 +41,10 @@ class Board(object):
                     piece = cls(self, team, (row, col))
                     self.cells[row][col] = piece
 
-                    if team == my_team:
-                        self.my_pieces.append(piece)
+                    if team == BLACK:
+                        self.pieces[BLACK].append(piece)
+                    else:
+                        self.pieces[WHITE].append(piece)
 
                 i += 1
 
@@ -46,12 +62,15 @@ class Board(object):
 
     def generate(self):
         moves = []
-        for piece in self.my_pieces:
+        for piece in self.pieces[my_team]:
             ms = piece.generate()
-            ms = [(piece.position, m) for m in ms]
+            ms = [Move(piece, m, self) for m in ms]
             moves.extend(ms)
 
         return moves
+
+    def compute_heuristic_value(self, team):
+        pass
 
 class Piece(object):
     def __init__(self):
