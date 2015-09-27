@@ -1,6 +1,7 @@
 import sys
 import socket
 from base_client import LiacBot
+from board import *
 
 class BobClient(LiacBot):
 
@@ -12,7 +13,8 @@ class BobClient(LiacBot):
 	
 
 	def on_move(self, state):
-		pass
+		print 'Generating a move...'
+		board = Board(state)
 
 	def on_game_over(self, state):
 		pass
