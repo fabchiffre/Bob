@@ -7,9 +7,10 @@ class BobClient(LiacBot):
 
 	def __init__(self, numClient, addrServer, portServer):
 		self.name= 'Bob'
-		self.numClient = numClient
+		self.numClient = int(numClient)
 		self.ip = addrServer
-		self.port = portServer
+		self.port = int(portServer)
+		super(BobClient, self).__init__()
 	
 
 	def on_move(self, state):
@@ -20,8 +21,10 @@ class BobClient(LiacBot):
 		pass
 
 	def start(self):
-		print "Bob is connecting to " + self.ip + ":" + self.port
-		super(self.__class__, self).start
+		print "Bob is connecting to " + self.ip + ":" + str(self.port)
+		super(BobClient, self).start()
+
+	
 
 
 
