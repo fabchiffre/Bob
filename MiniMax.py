@@ -2,11 +2,11 @@ from board import *
 
 def minimax(board, depth):
 	best_move = None
-	bord.generate
-	for m in board.moves:
+	for m in board.generate():
+		print "Search a move"
 		m.apply
-		m.score = mini(board, depth-1)
-			if(best_move == None or best_move.score > m.score):
+		m.score = mini(board, depth-1, board.my_team)
+		if(best_move == None or best_move.score > m.score):
 			best_move = m
 		m.undo
 	return best_move
@@ -16,8 +16,8 @@ def maxi(board, depth, my_team):
 		return board.compute_heuristic_value(my_team)
 
 	max_move = None
-	board.generate
-	for m in board.moves:
+	moves = board.generate()
+	for m in moves:
 		m.apply
 		m.score = mini(board, depth -1)
 		if(max_move == None or max_move.score < m.score):
@@ -30,8 +30,8 @@ def mini(board, depth, my_team):
 		m.score = board.compute_heuristic_value(my_team)
 
 	min_move = None
-	board.generate
-	for m in board.moves:
+	moves = board.generate()
+	for m in moves:
 		m.apply
 		m.score = max(board, depth -1)
 		if(min_move == None or min_move.score > m.score):

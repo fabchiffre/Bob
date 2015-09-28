@@ -1,5 +1,6 @@
 import sys
 import socket
+from MiniMax import *
 from base_client import LiacBot
 from board import *
 
@@ -16,6 +17,7 @@ class BobClient(LiacBot):
 	def on_move(self, state):
 		print 'Generating a move...'
 		board = Board(state)
+		minimax(board, 3)
 
 	def on_game_over(self, state):
 		pass

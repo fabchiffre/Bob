@@ -1,4 +1,4 @@
-import constants
+from constants import *
 
 # MODELS ======================================================================
 class Move(object):
@@ -17,6 +17,7 @@ class Move(object):
 class Board(object):
     def __init__(self, state):
         self.cells = [[None for j in xrange(8)] for i in xrange(8)]
+        self.pieces = {}
         self.pieces[WHITE] = []
         self.pieces[BLACK] = []
 
@@ -62,7 +63,7 @@ class Board(object):
 
     def generate(self):
         moves = []
-        for piece in self.pieces[my_team]:
+        for piece in self.pieces[self.my_team]:
             ms = piece.generate()
             ms = [Move(piece, m, self) for m in ms]
             moves.extend(ms)
