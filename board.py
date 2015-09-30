@@ -7,12 +7,19 @@ class Move(object):
         self.piece = piece
         self.pos_final = pos_final
         self.value=0
+        self.captured_piece = None
 
     def apply(self):
         piece.position = pos_final
+        for p in board.pieces[self.piece.team - 1]:
+            if(p.position == self.pos_final):
+                captured_piece = p
+                board.pieces[self.piece.team - 1].remove(p)
 
     def undo(self):
         piece.position = pos_init
+        if(captured_piece != None):
+            board.pieces[self.piece.team - 1].append(captured_piece)
 
 class Board(object):
     def __init__(self, state):
