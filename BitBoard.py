@@ -28,41 +28,39 @@ def print_bitboard(bb):
 			print "\n"
 
 def leftshift(ba, count):
-    return ba[count:] + (bitarray('0') * count)
+	return ba[count:] + (bitarray('0') * count)
 
 def rightshift(ba, count):
-    return (bitarray('0') * count) + ba[:-count]
+	return (bitarray('0') * count) + ba[:-count]
 
 class Move(object):
-    def __init__(self, piece_type, pos_init, pos_final):
-       self.piece_type = piece_type
-       self.pos_init = pos_init
-       self.pos_final = pos_final
+	def __init__(self, team, piece_type, pos_init, pos_final):
+		self.team = team
+		self.piece_type = piece_type
+		self.pos_init = pos_init
+		self.pos_final = pos_final
 
-       self.pos_init_bb = bitarray(64)
-       self.pos_init_bb.setall(0)
-       self.pos_init_bb[pos_init[0]*8 + pos_init[1]] = 1
+		self.pos_init_bb = bitarray(64)
+		self.pos_init_bb.setall(0)
+		self.pos_init_bb[pos_init[0]*8 + pos_init[1]] = 1
+
+		self.pos_final_bb = bitarray(64)
+		self.pos_final_bb.setall(0)
+		self.pos_final_bb[pos_final[0]*8 + pos_final[1]] = 1
+
+		self.from_to = self.pos_init_bb ^ self.pos_final_bb
 
 
-       self.pos_final_bb = bitarray(64)
-       self.pos_final_bb.setall(0)
-       self.pos_final_bb[pos_final[0]*8 + pos_final[1]] = 1
-
-       self.from_to = self.pos_init_bb ^ self.pos_final_bb
-
-
-    def apply(self, board, team):
-    	new_board = copy.deepcopy(board)
-    	new_board.pieces[team][self.piece_type] ^= self.from_to
-    	if((new_board.pieces[-team][PAWN] & self.pos_final_bb).any()):
-    		new_board.pieces[-team][PAWN] ^= self.pos_final_bb
-
-    	if((new_board.pieces[-team][KNIGHT] & self.pos_final_bb).any()):
-    		new_board.pieces[-team][KNIGHT] ^= self.pos_final_bb
-
-    	if((new_board.pieces[-team][QUEEN] & self.pos_final_bb).any()):
-    		new_board.pieces[-team][QUEEN] ^= self.pos_final_bb
-    	return new_board
+	def apply(self, board):
+		new_board = copy.deepcopy(board)
+		new_board.pieces[self.team][self.piece_type] ^= self.from_to
+		if((new_board.pieces[-self.team][PAWN] & self.pos_final_bb).any()):
+			new_board.pieces[-self.team][PAWN] ^= self.pos_final_bb
+		if((new_board.pieces[-self.team][KNIGHT] & self.pos_final_bb).any()):
+			new_board.pieces[-self.team][KNIGHT] ^= self.pos_final_bb
+		if((new_board.pieces[-self.team][QUEEN] & self.pos_final_bb).any()):
+			new_board.pieces[-self.team][QUEEN] ^= self.pos_final_bb
+		return new_board
 
 class BitBoard(object):
 	def __init__(self, state):
@@ -109,9 +107,9 @@ class BitBoard(object):
 		if bb_final.any():
 			pos_final = bb_final.index(1)
 			if (adv & bb_final).any():
-				moves.insert(0, Move(type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8)))
+				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8)))
 			else:
-				moves.append(Move(type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8)))
+				moves.append(Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8)))
 
 	def heuristic(self, team):
 		# check winners
@@ -276,10 +274,10 @@ class BitBoard(object):
 		if self.pieces[team][QUEEN].any():
 			pos_init = self.pieces[team][QUEEN].index(1)
 			self._generate_rook(team, adv, empty, moves)
-        	self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=1, col_dir=1) # TOPRIGHT
-        	self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=1, col_dir=-1) # TOPLEFT
-        	self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=-1, col_dir=-1) # BOTTOMLEFT
-        	self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=-1, col_dir=1) # BOTTOMRIGHT
+			self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=1, col_dir=1) # TOPRIGHT
+			self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=1, col_dir=-1) # TOPLEFT
+			self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=-1, col_dir=-1) # BOTTOMLEFT
+			self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=-1, col_dir=1) # BOTTOMRIGHT
 
 	def _generate_rook(self, team, adv, empty, moves):
 		pos_init = self.pieces[team][QUEEN].index(1)
