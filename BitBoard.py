@@ -16,6 +16,7 @@ notHFile = bitarray('11111110111111101111111011111110111111101111111011111110111
 notABFile = notAFile & notBFile
 notGHFile = notGFile & notHFile
 
+
 def print_bitboard(bb):
 		for i in range(7, -1, -1):
 			for j in range(0, 8):
@@ -126,8 +127,9 @@ class BitBoard(object):
 		empty = ~empty
 		
 		moves = []
-		self._generate_pawn(team, adv, empty, moves)
-		self._generate_knight(team, adv, empty, moves)
+		# self._generate_pawn(team, adv, empty, moves)
+		# self._generate_knight(team, adv, empty, moves)
+		self._generate_queen(team, adv, empty, moves)
 
 		return moves
 
@@ -200,3 +202,104 @@ class BitBoard(object):
 			
 
 			knights ^= bb_init
+
+	def _generate_queen(self, team, adv, empty, moves):
+		if self.pieces[team][QUEEN].any():
+			pos_init = self.pieces[team][QUEEN].index(1)
+			self._generate_rook(team, adv, empty, moves)
+        	self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=1, col_dir=1) # TOPRIGHT
+        	self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=1, col_dir=-1) # TOPLEFT
+        	self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=-1, col_dir=-1) # BOTTOMLEFT
+        	self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=-1, col_dir=1) # BOTTOMRIGHT
+
+	def _generate_rook(self, team, adv, empty, moves):
+		pos_init = self.pieces[team][QUEEN].index(1)
+		pos_init_y = pos_init / 8
+		pos_init_x = pos_init % 8
+		# Generate left
+		for i in range(1, pos_init_x + 1):
+			if empty[pos_init -i ]:
+				bb_final = bitarray(64)
+				bb_final.setall(0)
+				bb_final[pos_init - i] = 1
+				self._check_move(team, QUEEN, pos_init, bb_final, adv, moves)
+			elif adv[pos_init-i]:
+				bb_final = bitarray(64)
+				bb_final.setall(0)
+				bb_final[pos_init -i] = 1
+				self._check_move(team, QUEEN, pos_init, bb_final, adv, moves)
+				break
+			else:
+				break
+
+		# Generate right
+		for i in range(1, 8 - pos_init_x):
+			if empty[pos_init+i]:
+				bb_final = bitarray(64)
+				bb_final.setall(0)
+				bb_final[pos_init + i] = 1
+				self._check_move(team, QUEEN, pos_init, bb_final, adv, moves)
+			elif adv[pos_init+i]:
+				bb_final = bitarray(64)
+				bb_final.setall(0)
+				bb_final[pos_init + i] = 1
+				self._check_move(team, QUEEN, pos_init, bb_final, adv, moves)
+				break
+			else:
+				break
+
+		# Generate bottom
+		for i in range(1, pos_init_y + 1):
+			if empty[pos_init - i * 8 ]:
+				bb_final = bitarray(64)
+				bb_final.setall(0)
+				bb_final[pos_init - i * 8] = 1
+				self._check_move(team, QUEEN, pos_init, bb_final, adv, moves)
+			elif adv[pos_init - i * 8]:
+				bb_final = bitarray(64)
+				bb_final.setall(0)
+				bb_final[pos_init - i * 8] = 1
+				self._check_move(team, QUEEN, pos_init, bb_final, adv, moves)
+				break
+			else:
+				break
+
+		# Generate top
+		for i in range(1, 8 - pos_init_y):
+			if empty[pos_init + i * 8]:
+				bb_final = bitarray(64)
+				bb_final.setall(0)
+				bb_final[pos_init + i * 8] = 1
+				self._check_move(team, QUEEN, pos_init, bb_final, adv, moves)
+			elif adv[pos_init + i * 8]:
+				bb_final = bitarray(64)
+				bb_final.setall(0)
+				bb_final[pos_init + i * 8] = 1
+				self._check_move(team, QUEEN, pos_init, bb_final, adv, moves)
+				break
+			else:
+				break
+
+	def _generate_bishop(self, team, pos_init, empty, adv, moves, row_dir, col_dir):
+		my_row = pos_init / 8
+		my_col = pos_init % 8
+
+		for i in xrange(1, 8):
+			row = row_dir*i
+			col = col_dir*i
+			q_row, q_col = my_row+row, my_col+col
+
+			if not 0 <= q_row <= 7 or not 0 <= q_col <= 7:
+				break
+
+			if empty[q_row * 8 + q_col] or adv[q_row * 8 + q_col]:
+				bb_final = bitarray(64)
+				bb_final.setall(0)
+				bb_final[q_row * 8 + q_col] = 1
+				self._check_move(team, QUEEN, pos_init, bb_final, adv, moves)
+				if adv[q_row * 8 + q_col]:
+					break
+			else:
+				break
+			
+		
