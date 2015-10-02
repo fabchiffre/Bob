@@ -87,6 +87,8 @@ class BitBoard(object):
 		self.pieces[BLACK][KNIGHT] = bitarray(64)
 		self.pieces[BLACK][KNIGHT].setall(0)
 
+		self.team = state.team
+
 		c = state['board']
 		i=0
 		for row in xrange(7, -1, -1):
@@ -111,11 +113,11 @@ class BitBoard(object):
 			else:
 				moves.append(Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8)))
 
-	def heuristic(self, team):
+	def heuristic(self):
 		# check winners
-		if self.wins(team):
+		if self.wins(self.team):
 			return float('inf')
-		if self.wins(-team):
+		if self.wins(-self.team):
 			return float('-inf')
 
 		# compute value

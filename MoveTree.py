@@ -2,27 +2,25 @@ import global
 
 class MoveTree(object):
 	"""base to create a movement tree"""
-	def __init__(self, move, bitboard, isMin):
+	def __init__(self, move, bitboard, isMin, team):
 		super(MoveTree, self).__init__()
 		self.move = move
 		self.bitboard = move.apply(bitboard)
 		self.isMin = isMin
 		self.children = []
+		self.score = bitboard.heuristic()
 
-	def buildChildren():
+	def buildChildren(self):
 		nextMoves = self.bitboard.generateMoves()
 		for m in nextMoves:
 			self.children.append(new MoveTree(m, self.bitboard, !self.isMin))
 		return self.children
 
-	def score():
-		return self.bitboard.computeHeuristic()
-
-	def computeAlphaBeta():
+	def computeAlphaBeta(self, team):
 		global alpha
 		global beta
 		if children.empty():
-			return this.score()
+			return self.score
 		if self.isMin:
 			val = float("inf")
 			for child in children:
