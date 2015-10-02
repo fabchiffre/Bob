@@ -16,6 +16,10 @@ notHFile = bitarray('11111110111111101111111011111110111111101111111011111110111
 notABFile = notAFile & notBFile
 notGHFile = notGFile & notHFile
 
+valPoint = {}
+valPoint[PAWN] = 1.2
+valPoint[KNIGHT] = 3.3
+valPoint[QUEEN] = 8.8
 
 def print_bitboard(bb):
 		for i in range(7, -1, -1):
@@ -64,7 +68,7 @@ class BitBoard(object):
 	def __init__(self, state):
 		self.pieces = {}
 
-		self.pieces[WHITE] = {} 
+		self.pieces[WHITE] = {}
 		self.pieces[BLACK] = {}
 
 		self.pieces[WHITE][PAWN] = bitarray(64)
@@ -72,19 +76,19 @@ class BitBoard(object):
 
 		self.pieces[WHITE][QUEEN] = bitarray(64)
 		self.pieces[WHITE][QUEEN].setall(0)
-		
+
 		self.pieces[WHITE][KNIGHT] = bitarray(64)
 		self.pieces[WHITE][KNIGHT].setall(0)
 
 		self.pieces[BLACK][PAWN] = bitarray(64)
 		self.pieces[BLACK][PAWN].setall(0)
-		
+
 		self.pieces[BLACK][QUEEN] = bitarray(64)
 		self.pieces[BLACK][QUEEN].setall(0)
 
 		self.pieces[BLACK][KNIGHT] = bitarray(64)
 		self.pieces[BLACK][KNIGHT].setall(0)
-		
+
 		c = state['board']
 		i=0
 		for row in xrange(7, -1, -1):
@@ -109,7 +113,72 @@ class BitBoard(object):
 			else:
 				moves.append(Move(type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8)))
 
+	def heuristic(self, team):
+		# check winners
+		if self.wins(team):
+			return float('inf')
+		if self.wins(-team):
+			return float('-inf')
 
+		# compute value
+		res = 0
+		# diff of pieces value
+		res += (self.countKnight(team) - self.countKnight(-team)) * valPoint[KNIGHT]
+		res += (self.countQueen(team) - self.countQueen(-team)) * valPoint[QUEEN]
+		res += (self.countPawn(team) - self.countPawn(-team)) * valPoint[PAWN]
+		# diff of advancment of pawns
+		res += (self.distPawn(team) - distPawn(-team))
+
+		return res
+
+	def wins(self, team):
+		# no pawn on our side = LOSE
+		pieces = self.pieces[team][PAWN]
+		if pieces == 0:
+			return False
+		# no pawn on other side = WIN
+		otherPieces = self.pieces[-team][PAWN]
+		if otherPieces == 0:
+			return True
+		# pawn on last line
+		mask = 0xff
+		if team == WHITE:
+			mask <<= 56
+		lastLinePawn = self.pieces[team][PAWN] & mask
+		return (lastLinePawn != 0)
+
+	def countQueen(self, team):
+		if (self.pieces[team][QUEEN].any())
+			return 1
+
+	def countPawn(self, team):
+		res = 0
+		mask = 1
+		for x in xrange(0,63):
+			if (self.pieces[team][PAWN] & mask) != 0:
+				res += 1
+			mask <<= 1
+
+	def countKnight(self, team):
+		res = 0
+		mask = 1
+		for x in xrange(0,63):
+			if (self.pieces[team][KNIGHT] & mask) != 0:
+				res += 1
+			mask <<= 1
+
+	def distPawn(self, team):
+		res = 0
+		mask = 1
+		for x in xrange(0,63):
+			if (self.pieces[team][PAWN] & mask) != 0:
+				if team == WHITE:
+					dist = (int) (x/8 - 1)
+					res += dist*dist
+				if team == BLACK:
+					dist = (int) (6 - x/8)
+					res += dist*dist
+			mask <<= 1
 
 	def generate(self, team):
 		adv = bitarray(64)
@@ -125,7 +194,7 @@ class BitBoard(object):
 		empty |= self.pieces[team][QUEEN]
 		empty |= self.pieces[team][KNIGHT]
 		empty = ~empty
-		
+
 		moves = []
 		# self._generate_pawn(team, adv, empty, moves)
 		# self._generate_knight(team, adv, empty, moves)
@@ -144,13 +213,13 @@ class BitBoard(object):
 			bb_init[pos_init] = 1
 
 			# Movement to 1 forward
-			if team == WHITE:		
+			if team == WHITE:
 				bb_final = rightshift(bb_init, 8) & empty
 			else:
 				bb_final = leftshift(bb_init, 8) & empty
-			
+
 			self._check_move(team, PAWN, pos_init, bb_final, adv, moves)
-			
+
 			# Normal capture
 			if team == WHITE:
 				bb_final_1 = rightshift(bb_init, 7) & adv & notHFile
@@ -166,11 +235,11 @@ class BitBoard(object):
 
 	def _generate_knight(self, team, adv, empty, moves):
 		knights =  bitarray(self.pieces[team][KNIGHT])
-		
+
 		''' Loop for each pawn '''
 		while(knights.any()):
 			pos_init = knights.index(1)
-			
+
 			bb_init = bitarray(64)
 			bb_init.setall(0)
 			bb_init[pos_init] = 1
@@ -190,16 +259,16 @@ class BitBoard(object):
 			bb_final = rightshift(bb_init, 15) & notHFile & (empty | adv)
 			self._check_move(team, KNIGHT, pos_init, bb_final, adv, moves)
 
-			bb_final = rightshift(bb_init, 6) & notGHFile & (empty | adv) 
+			bb_final = rightshift(bb_init, 6) & notGHFile & (empty | adv)
 			self._check_move(team, KNIGHT, pos_init, bb_final, adv, moves)
-		
+
 			bb_final = leftshift(bb_init, 10) & notGHFile & (empty | adv)
 			self._check_move(team, KNIGHT, pos_init, bb_final, adv, moves)
 
-			
+
 			bb_final = leftshift(bb_init, 17) & notHFile & (empty | adv)
 			self._check_move(team, KNIGHT, pos_init, bb_final, adv, moves)
-			
+
 
 			knights ^= bb_init
 
@@ -301,5 +370,5 @@ class BitBoard(object):
 					break
 			else:
 				break
-			
-		
+
+
