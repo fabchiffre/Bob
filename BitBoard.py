@@ -13,6 +13,9 @@ notBFile = bitarray('10111111101111111011111110111111101111111011111110111111101
 notGFile = bitarray('1111110111111101111111011111110111111101111111011111110111111101')
 notHFile = bitarray('1111111011111110111111101111111011111110111111101111111011111110')
 
+row0File = bitarray('0000000000000000000000000000000000000000000000000000000011111111')
+row7File = bitarray('1111111100000000000000000000000000000000000000000000000000000000')
+
 notABFile = notAFile & notBFile
 notGHFile = notGFile & notHFile
 
@@ -63,7 +66,8 @@ class Move(object):
 		return new_board
 
 class BitBoard(object):
-	def __init__(self, state):
+	def __init__(self, state, my_team):
+		self.my_team = my_team
 		self.pieces = {}
 
 		self.pieces[WHITE] = {}
@@ -111,21 +115,21 @@ class BitBoard(object):
 			else:
 				moves.append(Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8)))
 
-	def heuristic(self, team):
+	def heuristic(self):
 		# check winners
-		if self.wins(team):
+		if self.wins(self.my_team):
 			return float('inf')
-		if self.wins(-team):
+		if self.wins(-self.my_team):
 			return float('-inf')
 
 		# compute value
 		res = 0
 		# diff of pieces value
-		res += (self.countKnight(team) - self.countKnight(-team)) * valPoint[KNIGHT]
-		res += (self.countQueen(team) - self.countQueen(-team)) * valPoint[QUEEN]
-		res += (self.countPawn(team) - self.countPawn(-team)) * valPoint[PAWN]
+		res += (self.countKnight(self.my_team) - self.countKnight(-self.my_team)) * valPoint[KNIGHT]
+		res += (self.countQueen(self.my_team) - self.countQueen(-self.my_team)) * valPoint[QUEEN]
+		res += (self.countPawn(self.my_team) - self.countPawn(-self.my_team)) * valPoint[PAWN]
 		# diff of advancment of pawns
-		res += (self.distPawn(team) - distPawn(-team))
+		res += (self.distPawn(self.my_team) - distPawn(-self.my_team))
 
 		return res
 
@@ -139,14 +143,14 @@ class BitBoard(object):
 		if otherPieces == 0:
 			return True
 		# pawn on last line
-		mask = 0xff
+		mask = row0File
 		if team == WHITE:
-			mask <<= 56
+			mask = row7File
 		lastLinePawn = self.pieces[team][PAWN] & mask
 		return (lastLinePawn != 0)
 
 	def countQueen(self, team):
-		if (self.pieces[team][QUEEN].any())
+		if (self.pieces[team][QUEEN].any()):
 			return 1
 
 	def countPawn(self, team):
