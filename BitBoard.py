@@ -14,7 +14,18 @@ notGFile = bitarray('11111101111111011111110111111101111111011111110111111101111
 notHFile = bitarray('1111111011111110111111101111111011111110111111101111111011111110')
 
 row0File = bitarray('0000000000000000000000000000000000000000000000000000000011111111')
+row1File = bitarray('0000000000000000000000000000000000000000000000001111111100000000')
+row2File = bitarray('0000000000000000000000000000000000000000111111110000000000000000')
+row3File = bitarray('0000000000000000000000000000000011111111000000000000000000000000')
+row4File = bitarray('0000000000000000000000001111111100000000000000000000000000000000')
+row5File = bitarray('0000000000000000111111110000000000000000000000000000000000000000')
+row6File = bitarray('0000000011111111000000000000000000000000000000000000000000000000')
 row7File = bitarray('1111111100000000000000000000000000000000000000000000000000000000')
+
+rowFile = [row0File, row1File, row2File, row3File, row4File, row5File, row6File, row7File]
+rowValue = {}
+rowValue[WHITE] = [0, 1, 2, 3, 4, 5, 6, float('inf')]
+rowValue[BLACK] = [float('inf'), 6, 5, 4, 3 , 2, 1 ]
 
 notABFile = notAFile & notBFile
 notGHFile = notGFile & notHFile
@@ -137,9 +148,9 @@ class BitBoard(object):
 		# compute value
 		res = 0
 		# diff of pieces value
-		res += (self.countKnight(self.my_team) - self.countKnight(-self.my_team)) * valPoint[KNIGHT]
-		res += (self.countQueen(self.my_team) - self.countQueen(-self.my_team)) * valPoint[QUEEN]
-		res += (self.countPawn(self.my_team) - self.countPawn(-self.my_team)) * valPoint[PAWN]
+		res += (self.pieces[self.my_team][KNIGHT].count() - self.pieces[-self.my_team][KNIGHT].count()) * valPoint[KNIGHT]
+		res += (self.pieces[self.my_team][QUEEN].count() - self.pieces[-self.my_team][QUEEN].count())  * valPoint[QUEEN]
+		res += (self.pieces[self.my_team][PAWN].count() - self.pieces[-self.my_team][PAWN].count())  * valPoint[PAWN]
 		# diff of advancment of pawns
 		res += (self.distPawn(self.my_team) - distPawn(-self.my_team))
 
@@ -161,38 +172,13 @@ class BitBoard(object):
 		lastLinePawn = self.pieces[team][PAWN] & mask
 		return (lastLinePawn != 0)
 
-	def countQueen(self, team):
-		if (self.pieces[team][QUEEN].any()):
-			return 1
-
-	def countPawn(self, team):
-		res = 0
-		mask = 1
-		for x in xrange(0,63):
-			if (self.pieces[team][PAWN] & mask) != 0:
-				res += 1
-			mask <<= 1
-
-	def countKnight(self, team):
-		res = 0
-		mask = 1
-		for x in xrange(0,63):
-			if (self.pieces[team][KNIGHT] & mask) != 0:
-				res += 1
-			mask <<= 1
-
 	def distPawn(self, team):
 		res = 0
 		mask = 1
-		for x in xrange(0,63):
-			if (self.pieces[team][PAWN] & mask) != 0:
-				if team == WHITE:
-					dist = (int) (x/8 - 1)
-					res += dist*dist
-				if team == BLACK:
-					dist = (int) (6 - x/8)
-					res += dist*dist
-			mask <<= 1
+		for x in range(0,8):
+			pop = (self.pieces[team][PAWN] & rowFile[x]).count()
+			res += pop * rowValue[team][x]
+		return res
 
 	def generate(self, team):
 		adv = bitarray(64)
