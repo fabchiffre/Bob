@@ -55,7 +55,7 @@ class Move(object):
 
 
 	def apply(self, board):
-		new_board = copy.deepcopy(board)
+		new_board = BitBoard(bitboard=board)
 		new_board.pieces[self.team][self.piece_type] ^= self.from_to
 		if((new_board.pieces[-self.team][PAWN] & self.pos_final_bb).any()):
 			new_board.pieces[-self.team][PAWN] ^= self.pos_final_bb
@@ -66,42 +66,52 @@ class Move(object):
 		return new_board
 
 class BitBoard(object):
-	def __init__(self, state, my_team):
-		self.my_team = my_team
+	def __init__(self, state=None, my_team=0, bitboard=None):
+		
+
 		self.pieces = {}
 
 		self.pieces[WHITE] = {}
 		self.pieces[BLACK] = {}
 
-		self.pieces[WHITE][PAWN] = bitarray(64)
-		self.pieces[WHITE][PAWN].setall(0)
+		if bitboard == None: 
+			self.my_team = my_team
+			self.pieces[WHITE][PAWN] = bitarray(64)
+			self.pieces[WHITE][PAWN].setall(0)
 
-		self.pieces[WHITE][QUEEN] = bitarray(64)
-		self.pieces[WHITE][QUEEN].setall(0)
+			self.pieces[WHITE][QUEEN] = bitarray(64)
+			self.pieces[WHITE][QUEEN].setall(0)
 
-		self.pieces[WHITE][KNIGHT] = bitarray(64)
-		self.pieces[WHITE][KNIGHT].setall(0)
+			self.pieces[WHITE][KNIGHT] = bitarray(64)
+			self.pieces[WHITE][KNIGHT].setall(0)
 
-		self.pieces[BLACK][PAWN] = bitarray(64)
-		self.pieces[BLACK][PAWN].setall(0)
+			self.pieces[BLACK][PAWN] = bitarray(64)
+			self.pieces[BLACK][PAWN].setall(0)
 
-		self.pieces[BLACK][QUEEN] = bitarray(64)
-		self.pieces[BLACK][QUEEN].setall(0)
+			self.pieces[BLACK][QUEEN] = bitarray(64)
+			self.pieces[BLACK][QUEEN].setall(0)
 
-		self.pieces[BLACK][KNIGHT] = bitarray(64)
-		self.pieces[BLACK][KNIGHT].setall(0)
+			self.pieces[BLACK][KNIGHT] = bitarray(64)
+			self.pieces[BLACK][KNIGHT].setall(0)
 
-		self.team = state.team
+			c = state['board']
+			i=0
+			for row in xrange(7, -1, -1):
+				for col in xrange(0, 8):
+					if c[i] != '.':
+						team = BLACK if c[i].lower() == c[i] else WHITE
+						self.pieces[team][c[i].lower()][row*8 + col] = 1
+					i += 1
+		else:
+			self.my_team = bitboard.my_team
+			self.pieces[WHITE][PAWN] = bitarray(bitboard.pieces[WHITE][PAWN])
+			self.pieces[WHITE][QUEEN] = bitarray(bitboard.pieces[WHITE][PAWN])
+			self.pieces[WHITE][KNIGHT] = bitarray(bitboard.pieces[WHITE][PAWN])
+			self.pieces[BLACK][PAWN] = bitarray(bitboard.pieces[WHITE][PAWN])
+			self.pieces[BLACK][QUEEN] = bitarray(bitboard.pieces[WHITE][PAWN])
+			self.pieces[BLACK][KNIGHT] = bitarray(bitboard.pieces[WHITE][PAWN])
 
-		c = state['board']
-		i=0
-		for row in xrange(7, -1, -1):
-			for col in xrange(0, 8):
-				if c[i] != '.':
-					team = BLACK if c[i].lower() == c[i] else WHITE
-					self.pieces[team][c[i].lower()][row*8 + col] = 1
-				i += 1
-
+			
 	def count_pop_bit_board(self, bb):
 		count = 0
 		while(bb):
@@ -200,8 +210,8 @@ class BitBoard(object):
 		empty = ~empty
 
 		moves = []
-		# self._generate_pawn(team, adv, empty, moves)
-		# self._generate_knight(team, adv, empty, moves)
+		self._generate_pawn(team, adv, empty, moves)
+		self._generate_knight(team, adv, empty, moves)
 		self._generate_queen(team, adv, empty, moves)
 
 		return moves
