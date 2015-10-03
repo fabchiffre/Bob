@@ -111,6 +111,7 @@ class BitBoard(object):
 			self.pieces[BLACK][QUEEN] = bitarray(bitboard.pieces[WHITE][PAWN])
 			self.pieces[BLACK][KNIGHT] = bitarray(bitboard.pieces[WHITE][PAWN])
 
+
 	def count_pop_bit_board(self, bb):
 		count = 0
 		while(bb):

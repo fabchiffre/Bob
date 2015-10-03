@@ -24,6 +24,7 @@ class MoveTree(object):
 			self.children.append(node)
 		return self.children
 
+
 	def score(self):
 		return self.bitboard.heuristic()
 
