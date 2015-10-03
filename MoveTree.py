@@ -39,7 +39,7 @@ class MoveTree(object):
 				val = min(val, child.compute_alpha_beta())
 				if val < alpha:
 					return val
-				alpha = max(alpha, val)
+				alpha = min(alpha, val)
 		else:
 			val = float("-inf")
 			for child in self.children:
