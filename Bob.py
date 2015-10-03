@@ -9,7 +9,10 @@ class BobClient(LiacBot):
 
 	def __init__(self, my_team, addr_server, port_server):
 		self.name= 'Bob'
-		self.my_team = int(my_team)
+		if my_team == 'white':
+			self.my_team = 1
+		else :
+			self.my_team = -1
 		self.ip = addr_server
 		self.port = int(port_server)
 		self.move_tree = None
@@ -44,7 +47,7 @@ def print_help():
 	print "Bob is a bot developed for Liac Chess"
 	print "Command line :"
 	print "	python Bob.py [player] [ip server] [port client]"
-	print "	player : -1 for black or 1 for white"
+	print "	player : black or white"
 
 if(len(sys.argv) != 4):
 	print_help()
