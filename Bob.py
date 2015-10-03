@@ -1,27 +1,41 @@
 import sys
 import socket
+from MiniMax import *
 from base_client import LiacBot
-from board import *
+from BitBoard import *
+from MoveTree import *
 
 class BobClient(LiacBot):
 
-	def __init__(self, numClient, addrServer, portServer):
+	def __init__(self, my_team, addr_server, port_server):
 		self.name= 'Bob'
-		self.numClient = numClient
-		self.ip = addrServer
-		self.port = portServer
+		self.my_team = int(my_team)
+		self.ip = addr_server
+		self.port = int(port_server)
+		self.move_tree = None
+		super(BobClient, self).__init__()
 	
 
 	def on_move(self, state):
 		print 'Generating a move...'
-		board = Board(state)
+		board = BitBoard(state=state, my_team=self.my_team)
+		if self.move_tree == None:
+			''' Construct the first instance '''
+			self.move_tree = MoveTree(bitboard=board, depth=3)
+		
+		self.move_tree = self.move_tree.get_best_move()
+		self.send_move(self.move_tree.move.pos_init, self.move_tree.move.pos_final)
+		''' Temporarly '''
+		self.move_tree = None
 
 	def on_game_over(self, state):
 		pass
 
 	def start(self):
-		print "Bob is connecting to " + self.ip + ":" + self.port
-		super(self.__class__, self).start
+		print "Bob is connecting to " + self.ip + ":" + str(self.port)
+		super(BobClient, self).start()
+
+	
 
 
 
