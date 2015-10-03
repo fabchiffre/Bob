@@ -1,7 +1,7 @@
 from BitBoard import *
 
-alpha = float('-inf')
-beta = float('inf')
+alpha = float('inf')
+beta = float('-inf')
 
 class MoveTree(object):
 	"""base to create a movement tree"""
@@ -24,7 +24,6 @@ class MoveTree(object):
 			self.children.append(node)
 		return self.children
 
-
 	def score(self):
 		return self.bitboard.heuristic()
 
@@ -34,26 +33,28 @@ class MoveTree(object):
 		if not self.children:
 			return self.score()
 		if self.isMin:
-			val = float("inf")
+			v = float('inf')
 			for child in self.children:
-				val = min(val, child.compute_alpha_beta())
-				if val < alpha:
-					return val
-				alpha = min(alpha, val)
+				v = min(v, child.compute_alpha_beta())
+				alpha = min(alpha, v)
+				if alpha >= beta:
+					break
+			return v
+
 		else:
-			val = float("-inf")
+			v = float('-inf')
 			for child in self.children:
-				val = max(val, child.compute_alpha_beta())
-				if val > beta:
-					return val
-				beta = max(beta, val)
-		return val
+				v = max(v, child.compute_alpha_beta())
+				beta = max(beta, v)
+				if alpha >= beta:
+					break
+			return v
 
 	def get_best_move(self):
 		global alpha
-		alpha = float('-inf')
+		alpha = float('inf')
 		global beta
-		beta = float('inf')
+		beta = float('-inf')
 
 		best_move = None
 		best_val = None

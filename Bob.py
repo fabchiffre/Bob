@@ -24,7 +24,7 @@ class BobClient(LiacBot):
 		board = BitBoard(state=state, my_team=self.my_team)
 		if self.move_tree == None:
 			''' Construct the first instance '''
-			self.move_tree = MoveTree(bitboard=board, depth=2)
+			self.move_tree = MoveTree(bitboard=board, depth=3)
 		
 		self.move_tree = self.move_tree.get_best_move()
 		self.send_move(self.move_tree.move.pos_init, self.move_tree.move.pos_final)
