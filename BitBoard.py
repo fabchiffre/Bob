@@ -24,8 +24,8 @@ row7File = bitarray('11111111000000000000000000000000000000000000000000000000000
 
 rowFile = [row0File, row1File, row2File, row3File, row4File, row5File, row6File, row7File]
 rowValue = {}
-rowValue[WHITE] = [0, 1, 2, 3, 4, 5, 6, 10000]
-rowValue[BLACK] = [10000, 6, 5, 4, 3 , 2, 1, 0]
+rowValue[WHITE] = [0, 1, 4, 9, 16, 25, 36, 10000]
+rowValue[BLACK] = [10000, 36, 25, 16, 9 , 4, 1, 0]
 
 notABFile = notAFile & notBFile
 notGHFile = notGFile & notHFile
