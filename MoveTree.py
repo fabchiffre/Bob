@@ -1,4 +1,5 @@
 from BitBoard import *
+import time
 
 alpha = float('inf')
 beta = float('-inf')
@@ -11,10 +12,20 @@ class MoveTree(object):
 		self.isMin = isMin
 		self.bitboard = bitboard
 		self.children = []
-		if depth > 0:
-			self.build_children(depth)
+		self.depth = depth
 
-	def build_children(self, depth):
+	def build_children_withdepth(self, depth):
+		if self.isMin:
+			nextMoves = self.bitboard.generate(-self.bitboard.my_team)
+		else:
+			nextMoves = self.bitboard.generate(self.bitboard.my_team)
+		for m in nextMoves:
+			node = MoveTree(m.apply(self.bitboard), m, not self.isMin, depth-1)
+			node.build_children_withdepth(depth-1)
+			self.children.append(node)
+		return self.children
+
+	def build_children(self):
 		if self.isMin:
 			nextMoves = self.bitboard.generate(-self.bitboard.my_team)
 		else:
@@ -63,4 +74,40 @@ class MoveTree(object):
 			if best_move == None or best_val < val:
 				best_move = n
 				best_val = val
+
 		return best_move
+
+	def searchLeaf(self, queue):
+		nodesToExplore = []
+		while nodesToExplore.len() != 0:
+			node = nodesToExplore.popleft()
+			if node.children = []:
+				queue.append(node)
+			else:
+				nodesToExplore.extend(node.children)
+
+		if self.children == []:
+			queue.append(self)
+			return
+		else:
+			for child in children:
+				child.searchLeaf(queue)
+
+	def root_build_children(sefl):
+		t_zero = time.time()
+		queue = deque()
+		# look for leaves
+		# breadth-first search
+		nodesToExplore = deque()
+		while nodesToExplore.len() != 0:
+			node = nodesToExplore.popleft()
+			if node.children = []:
+				queue.append(node)
+			else:
+				nodesToExplore.extend(node.children)
+		# build children, still BFS order
+		while(time.time() < t_zero + 5.):
+			node = queue.popleft()
+			children = node.build_children()
+			queue.extend(children)
+
