@@ -24,8 +24,8 @@ row7File = bitarray('11111111000000000000000000000000000000000000000000000000000
 
 rowFile = [row0File, row1File, row2File, row3File, row4File, row5File, row6File, row7File]
 rowValue = {}
-rowValue[WHITE] = [0, 1, 2, 3, 4, 5, 6, float('inf')]
-rowValue[BLACK] = [float('inf'), 6, 5, 4, 3 , 2, 1 ]
+rowValue[WHITE] = [0, 1, 2, 3, 4, 5, 6, 10000]
+rowValue[BLACK] = [10000, 6, 5, 4, 3 , 2, 1, 0]
 
 notABFile = notAFile & notBFile
 notGHFile = notGFile & notHFile
@@ -48,7 +48,7 @@ def rightshift(ba, count):
 	return (bitarray('0') * count) + ba[:-count]
 
 class Move(object):
-	def __init__(self, team, piece_type, pos_init, pos_final):
+	def __init__(self, team, piece_type, pos_init, pos_final, capture=False):
 		self.team = team
 		self.piece_type = piece_type
 		self.pos_init = pos_init
@@ -64,22 +64,23 @@ class Move(object):
 
 		self.from_to = self.pos_init_bb ^ self.pos_final_bb
 
+		self.capture = capture
+
 
 	def apply(self, board):
 		new_board = BitBoard(bitboard=board)
 		new_board.pieces[self.team][self.piece_type] ^= self.from_to
-		if((new_board.pieces[-self.team][PAWN] & self.pos_final_bb).any()):
-			new_board.pieces[-self.team][PAWN] ^= self.pos_final_bb
-		if((new_board.pieces[-self.team][KNIGHT] & self.pos_final_bb).any()):
-			new_board.pieces[-self.team][KNIGHT] ^= self.pos_final_bb
-		if((new_board.pieces[-self.team][QUEEN] & self.pos_final_bb).any()):
-			new_board.pieces[-self.team][QUEEN] ^= self.pos_final_bb
+		if(self.capture):
+			if((new_board.pieces[-self.team][PAWN] & self.pos_final_bb).any()):
+				new_board.pieces[-self.team][PAWN] ^= self.pos_final_bb
+			if((new_board.pieces[-self.team][KNIGHT] & self.pos_final_bb).any()):
+				new_board.pieces[-self.team][KNIGHT] ^= self.pos_final_bb
+			if((new_board.pieces[-self.team][QUEEN] & self.pos_final_bb).any()):
+				new_board.pieces[-self.team][QUEEN] ^= self.pos_final_bb
 		return new_board
 
 class BitBoard(object):
 	def __init__(self, state=None, my_team=0, bitboard=None):
-		
-
 		self.pieces = {}
 
 		self.pieces[WHITE] = {}
@@ -122,21 +123,13 @@ class BitBoard(object):
 			self.pieces[BLACK][QUEEN] = bitarray(bitboard.pieces[WHITE][PAWN])
 			self.pieces[BLACK][KNIGHT] = bitarray(bitboard.pieces[WHITE][PAWN])
 
-
-	def count_pop_bit_board(self, bb):
-		count = 0
-		while(bb):
-			count += 1
-			bb &= bb - 1
-		return count
-
 	def _check_move(self, team, type_p, pos_init, bb_final, adv, moves):
 		if bb_final.any():
 			pos_final = bb_final.index(1)
 			if (adv & bb_final).any():
-				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8)))
+				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), True))
 			else:
-				moves.append(Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8)))
+				moves.append(Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), False))
 
 	def heuristic(self):
 		# check winners
@@ -144,37 +137,36 @@ class BitBoard(object):
 			return float('inf')
 		if self.wins(-self.my_team):
 			return float('-inf')
-
 		# compute value
 		res = 0
 		# diff of pieces value
 		res += (self.pieces[self.my_team][KNIGHT].count() - self.pieces[-self.my_team][KNIGHT].count()) * valPoint[KNIGHT]
 		res += (self.pieces[self.my_team][QUEEN].count() - self.pieces[-self.my_team][QUEEN].count())  * valPoint[QUEEN]
 		res += (self.pieces[self.my_team][PAWN].count() - self.pieces[-self.my_team][PAWN].count())  * valPoint[PAWN]
+
 		# diff of advancment of pawns
-		res += (self.distPawn(self.my_team) - distPawn(-self.my_team))
+		res += (self.distPawn(self.my_team) - self.distPawn(-self.my_team))
 
 		return res
 
 	def wins(self, team):
 		# no pawn on our side = LOSE
 		pieces = self.pieces[team][PAWN]
-		if pieces == 0:
+		if pieces.count() == 0:
 			return False
 		# no pawn on other side = WIN
 		otherPieces = self.pieces[-team][PAWN]
-		if otherPieces == 0:
+		if otherPieces.count() == 0:
 			return True
-		# pawn on last line
-		mask = row0File
-		if team == WHITE:
-			mask = row7File
-		lastLinePawn = self.pieces[team][PAWN] & mask
-		return (lastLinePawn != 0)
+		# # pawn on last line
+		# mask = row0File
+		# if team == WHITE:
+		# 	mask = row7File
+		# lastLinePawn = self.pieces[team][PAWN] & mask
+		# return (lastLinePawn != 0)
 
 	def distPawn(self, team):
 		res = 0
-		mask = 1
 		for x in range(0,8):
 			pop = (self.pieces[team][PAWN] & rowFile[x]).count()
 			res += pop * rowValue[team][x]
