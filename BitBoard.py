@@ -68,7 +68,7 @@ class Move(object):
 
 
 	def apply(self, board):
-		new_board = BitBoard(bitboard=board)
+		new_board = copy.deepcopy(board)
 		new_board.pieces[self.team][self.piece_type] ^= self.from_to
 		if(self.capture):
 			if((new_board.pieces[-self.team][PAWN] & self.pos_final_bb).any()):
