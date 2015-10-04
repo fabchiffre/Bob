@@ -1,5 +1,6 @@
 from BitBoard import *
 import time
+from collections import deque
 
 alpha = float('inf')
 beta = float('-inf')
@@ -14,7 +15,7 @@ class MoveTree(object):
 		self.children = []
 		self.depth = depth
 
-	def build_children_withdepth(self, depth):
+	def build_children_withdepth(self, depth=0):
 		if self.isMin:
 			nextMoves = self.bitboard.generate(-self.bitboard.my_team)
 		else:
@@ -31,7 +32,7 @@ class MoveTree(object):
 		else:
 			nextMoves = self.bitboard.generate(self.bitboard.my_team)
 		for m in nextMoves:
-			node = MoveTree(m.apply(self.bitboard), m, not self.isMin, depth-1)
+			node = MoveTree(m.apply(self.bitboard), m, not self.isMin)
 			self.children.append(node)
 		return self.children
 
@@ -81,7 +82,7 @@ class MoveTree(object):
 		nodesToExplore = []
 		while nodesToExplore.len() != 0:
 			node = nodesToExplore.popleft()
-			if node.children = []:
+			if node.children == []:
 				queue.append(node)
 			else:
 				nodesToExplore.extend(node.children)
@@ -93,20 +94,21 @@ class MoveTree(object):
 			for child in children:
 				child.searchLeaf(queue)
 
-	def root_build_children(sefl):
+	def root_build_children(self):
 		t_zero = time.time()
 		queue = deque()
 		# look for leaves
 		# breadth-first search
 		nodesToExplore = deque()
-		while nodesToExplore.len() != 0:
+		nodesToExplore.append(self)
+		while len(nodesToExplore) != 0:
 			node = nodesToExplore.popleft()
-			if node.children = []:
+			if node.children == []:
 				queue.append(node)
 			else:
 				nodesToExplore.extend(node.children)
 		# build children, still BFS order
-		while(time.time() < t_zero + 5.):
+		while(time.time() < t_zero + 4.):
 			node = queue.popleft()
 			children = node.build_children()
 			queue.extend(children)
