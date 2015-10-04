@@ -1,5 +1,5 @@
 import copy
-from bitarray import bitarray
+from bitarray import *
 
 WHITE = 1
 BLACK = -1
