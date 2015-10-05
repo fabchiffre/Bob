@@ -17,7 +17,7 @@ class BobClient(LiacBot):
 		self.port = int(port_server)
 		self.move_tree = None
 		super(BobClient, self).__init__()
-	
+
 
 	def on_move(self, state):
 		print 'Generating a move...',
@@ -25,14 +25,16 @@ class BobClient(LiacBot):
 		if self.move_tree == None:
 			''' Construct the first instance '''
 			self.move_tree = MoveTree(bitboard=board)
-		
+		else:
+			self.move_tree = self.move_tree.get_right_child(bitboard=board)
+
 		self.move_tree.root_build_children()
 		self.move_tree = self.move_tree.get_best_move()
 		self.send_move(self.move_tree.move.pos_init, self.move_tree.move.pos_final)
 
 		''' Temporarly '''
-		print str(self.move_tree.move.pos_init) + ", " + str(self.move_tree.move.pos_final)
-		self.move_tree = None
+		# print str(self.move_tree.move.pos_init) + ", " + str(self.move_tree.move.pos_final)
+		# self.move_tree = None
 
 	def on_game_over(self, state):
 		self.move_tree = None
@@ -41,7 +43,7 @@ class BobClient(LiacBot):
 		print "Bob is connecting to " + self.ip + ":" + str(self.port)
 		super(BobClient, self).start()
 
-	
+
 
 
 
@@ -57,5 +59,5 @@ if(len(sys.argv) != 4):
 else:
 	bot = BobClient(sys.argv[1], sys.argv[2], sys.argv[3])
 	bot.start()
-	
+
 

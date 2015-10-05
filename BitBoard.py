@@ -88,7 +88,7 @@ class BitBoard(object):
 		self.pieces[WHITE] = {}
 		self.pieces[BLACK] = {}
 
-		if bitboard == None: 
+		if bitboard == None:
 			self.my_team = my_team
 			self.pieces[WHITE][PAWN] = bitarray(64)
 			self.pieces[WHITE][PAWN].setall(0)
@@ -124,6 +124,17 @@ class BitBoard(object):
 			self.pieces[BLACK][PAWN] = bitarray(bitboard.pieces[WHITE][PAWN])
 			self.pieces[BLACK][QUEEN] = bitarray(bitboard.pieces[WHITE][PAWN])
 			self.pieces[BLACK][KNIGHT] = bitarray(bitboard.pieces[WHITE][PAWN])
+
+
+	def equals(self, bitboard):
+		ans = True
+		ans &= ( bitdiff(self.pieces[BLACK][PAWN], bitboard.pieces[BLACK][PAWN]) == 0 )
+		ans &= ( bitdiff(self.pieces[WHITE][PAWN], bitboard.pieces[WHITE][PAWN]) == 0 )
+		ans &= ( bitdiff(self.pieces[BLACK][QUEEN], bitboard.pieces[BLACK][QUEEN]) == 0 )
+		ans &= ( bitdiff(self.pieces[WHITE][QUEEN], bitboard.pieces[WHITE][QUEEN]) == 0 )
+		ans &= ( bitdiff(self.pieces[BLACK][KNIGHT], bitboard.pieces[BLACK][KNIGHT]) == 0 )
+		ans &= ( bitdiff(self.pieces[WHITE][KNIGHT], bitboard.pieces[WHITE][KNIGHT]) == 0 )
+		return ans;
 
 	def _check_move(self, team, type_p, pos_init, bb_final, adv, moves):
 		if bb_final.any():

@@ -78,21 +78,6 @@ class MoveTree(object):
 
 		return best_move
 
-	def searchLeaf(self, queue):
-		nodesToExplore = []
-		while nodesToExplore.len() != 0:
-			node = nodesToExplore.popleft()
-			if node.children == []:
-				queue.append(node)
-			else:
-				nodesToExplore.extend(node.children)
-
-		if self.children == []:
-			queue.append(self)
-			return
-		else:
-			for child in children:
-				child.searchLeaf(queue)
 
 	def root_build_children(self):
 		t_zero = time.time()
@@ -113,3 +98,8 @@ class MoveTree(object):
 			children = node.build_children()
 			queue.extend(children)
 
+	def get_right_child(self, bitboard):
+		for child in self.children:
+			if bitboard.equals(child.bitboard):
+				return child
+		return None
