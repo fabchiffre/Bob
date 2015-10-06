@@ -1,5 +1,6 @@
 import sys
 import socket
+import time
 from base_client import LiacBot
 from BitBoard import *
 from MoveTree import *
@@ -19,15 +20,19 @@ class BobClient(LiacBot):
 
 
 	def on_move(self, state):
-		print 'Generating a move...',
+		t_zero = time.time()
+
+		print 'Generating a move...'
 		board = BitBoard(state=state, my_team=self.my_team)
+		
+		if board != None:
+			self.move_tree = self.move_tree.get_right_child(bitboard=board)
+
 		if self.move_tree == None:
 			''' Construct the first instance '''
 			self.move_tree = MoveTree(bitboard=board)
-		else:
-			self.move_tree = self.move_tree.get_right_child(bitboard=board)
 
-		self.move_tree.root_build_children()
+		self.move_tree.root_build_children(t_zero)
 		self.move_tree = self.move_tree.get_best_move()
 		self.send_move(self.move_tree.move.pos_init, self.move_tree.move.pos_final)
 
@@ -36,8 +41,9 @@ class BobClient(LiacBot):
 		# self.move_tree = None
 
 	def on_game_over(self, state):
-		self.move_tree = None
-
+		print "Game Over"
+		sys.exit()
+		
 	def start(self):
 		print "Bob is connecting to " + self.ip + ":" + str(self.port)
 		super(BobClient, self).start()

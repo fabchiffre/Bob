@@ -68,8 +68,8 @@ class MoveTree(object):
 		global beta
 		beta = float('-inf')
 
-		best_move = None
-		best_val = None
+		best_move = self.children[0]
+		best_val = -100000
 		for n in self.children:
 			val = n.compute_alpha_beta()
 			if best_move == None or best_val < val:
@@ -79,8 +79,8 @@ class MoveTree(object):
 		return best_move
 
 
-	def root_build_children(self):
-		t_zero = time.time()
+	def root_build_children(self, time_zero):
+		t_zero = time_zero
 		queue = deque()
 		# look for leaves
 		# breadth-first search

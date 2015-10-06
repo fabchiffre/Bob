@@ -24,8 +24,8 @@ row7File = bitarray('11111111000000000000000000000000000000000000000000000000000
 
 rowFile = [row0File, row1File, row2File, row3File, row4File, row5File, row6File, row7File]
 rowValue = {}
-rowValue[BLACK] = [0, 1, 2, 4, 8, 16, 32, 10000]
-rowValue[WHITE] = [10000, 32, 16, 8, 4 , 2, 1, 0]
+rowValue[BLACK] = [0, 1, 2, 4, 8, 16, 32, 100000]
+rowValue[WHITE] = [100000, 32, 16, 8, 4 , 2, 1, 0]
 
 coefDistPawn = 0.2
 
