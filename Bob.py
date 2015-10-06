@@ -1,6 +1,5 @@
 import sys
 import socket
-from MiniMax import *
 from base_client import LiacBot
 from BitBoard import *
 from MoveTree import *
