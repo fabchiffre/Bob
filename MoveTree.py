@@ -36,14 +36,15 @@ class MoveTree(object):
 			self.children.append(node)
 		return self.children
 
-	def score(self):
+	def get_heuristic(self):
 		return self.bitboard.heuristic()
 
 	def compute_alpha_beta(self):
 		global alpha
 		global beta
+		delta = self.bitboard.compute_delta(this.move)
 		if not self.children:
-			return self.score()
+			return self.get_heuristic()
 		if self.isMin:
 			v = float('inf')
 			for child in self.children:
@@ -57,6 +58,30 @@ class MoveTree(object):
 			v = float('-inf')
 			for child in self.children:
 				v = max(v, child.compute_alpha_beta())
+				beta = max(beta, v)
+				if alpha >= beta:
+					break
+			return v
+
+	def compute_alpha_beta_incr(self, prev_score):
+		global alpha
+		global beta
+		delta = self.bitboard.compute_delta(this.move)
+		score = prev_score + delta
+		if not self.children:
+			return score
+		if self.isMin:
+			v = float('inf')
+			for child in self.children:
+				v = min(v, child.compute_alpha_beta_incr(score))
+				alpha = min(alpha, v)
+				if alpha >= beta:
+					break
+			return v
+		else:
+			v = float('-inf')
+			for child in self.children:
+				v = max(v, child.compute_alpha_beta_incr(score))
 				beta = max(beta, v)
 				if alpha >= beta:
 					break
