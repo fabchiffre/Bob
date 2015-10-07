@@ -28,8 +28,8 @@ rowValue[BLACK] = [0, 1, 2, 4, 8, 16, 32, 100000]
 rowValue[WHITE] = [100000, 32, 16, 8, 4, 2, 1, 0]
 
 incrRowValue = {}
-incrRowValue[BLACK] = [0, 0, 1, 3, 4, 8, 16, 100000]
-incrRowValue[WHITE] = [100000, 16, 8, 4, 2, 1, 0, 0]
+incrRowValue[WHITE] = [0, 0, 1, 3, 4, 8, 16, 100000]
+incrRowValue[BLACK] = [100000, 16, 8, 4, 2, 1, 0, 0]
 
 coefDistPawn = 0.2
 
@@ -74,24 +74,22 @@ class Move(object):
 		self.capture_type = capture_type
 
 	def compute_delta(self, bitboard):
-		if bitboard.wins(bitboard.my_team):
+		if bitboard.wins(self.team):
 			return 100000
-		if bitboard.wins(-bitboard.my_team):
+		if bitboard.wins(-self.team):
 			return -100000
 		res = 0
 		if self.capture:
 			res += valPoint[self.capture_type]
 			if self.capture_type == PAWN:
-				#
-				res += incrRowValue[self.team][self.pos_final[0]] * coefDistPawn
+				res += incrRowValue[-self.team][self.pos_final[0]] * coefDistPawn
 
 		if bitboard.is_attacked(self.pos_final_bb, self.pos_final[0], self.pos_final[1], -self.team):
 			res -= valPoint[self.piece_type]
 		else:
 			if self.piece_type == PAWN:
-				# The pos_final[0] is in the reverse order of incrRowValue. So we use the value
-				# of the opposite team.
-				res += incrRowValue[-self.team][self.pos_final[0]] * coefDistPawn
+
+				res += incrRowValue[self.team][self.pos_final[0]] * coefDistPawn
 
 		if self.team == bitboard.my_team:
 			return res
