@@ -24,8 +24,8 @@ class BobClient(LiacBot):
 
 		print 'Generating a move...'
 		board = BitBoard(state=state, my_team=self.my_team)
-		
-		if board != None:
+
+		if self.move_tree != None:
 			self.move_tree = self.move_tree.get_right_child(bitboard=board)
 
 		if self.move_tree == None:
