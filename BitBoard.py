@@ -75,19 +75,22 @@ class Move(object):
 
 	def compute_delta(self, bitboard):
 		res = 0
-		res += valPoint[self.capture_type]
-		if is_attacked(self.pos_final_bb, self.team):
+		if self.capture:
+			res += valPoint[self.capture_type]
+		
+		if bitboard.is_attacked(self.pos_final_bb, self.pos_final[0], self.pos_final[1], -self.team):
 			res -= valPoint[self.piece_type]
 		else:
 			if self.piece_type == PAWN:
-				res += incrRowValue[team][pos_final[0]]
+				res += incrRowValue[self.team][self.pos_final[0]]
 		return res
 
 	def apply(self, board):
 		new_board = copy.deepcopy(board)
 		new_board.pieces[self.team][self.piece_type] ^= self.from_to
-		if(self.capture):
-				new_board.pieces[-self.team][capture_type] ^= self.pos_final_bb
+
+		if self.capture:
+				new_board.pieces[-self.team][self.capture_type] ^= self.pos_final_bb
 		return new_board
 
 class BitBoard(object):
@@ -149,13 +152,13 @@ class BitBoard(object):
 		if bb_final.any():
 			pos_final = bb_final.index(1)
 			if (self.pieces[-self.my_team][PAWN] & bb_final).any():
-				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), True, PAWN))
+				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=PAWN))
 			elif (self.pieces[-self.my_team][KNIGHT] & bb_final).any():
-				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), True, KNIGHT))
+				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=KNIGHT))
 			elif (self.pieces[-self.my_team][QUEEN] & bb_final).any():
-				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), True, QUEEN))
+				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=QUEEN))
 			else:
-				moves.append(Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), False))
+				moves.append(Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=False))
 
 	def heuristic(self):
 		# check winners
@@ -236,47 +239,59 @@ class BitBoard(object):
 		res += nb_queen * valPoint[QUEEN]
 		return res
 
-	def is_attacked(self, pos_bb, team):
+	def is_attacked(self, bb_final, row, col,  team):
+		index = row * col
+
+		bb_init = self.pieces[team][PAWN]
 		# PAWN
 		if team == WHITE:
-			if self.pieces[-team][PAWN][pos_bb + 7]:
+			bb_pos_adv = rightshift(bb_init, 7) & notHFile
+			if (bb_pos_adv & bb_final).any():
 				return True
-			if self.pieces[-team][PAWN][pos_bb + 9]:
+
+			bb_pos_adv = rightshift(bb_init, 9) & notAFile
+			if (bb_pos_adv & bb_final).any():
 				return True
 		else:
-			if self.pieces[-team][PAWN][pos_bb - 7]:
+			bb_pos_adv = leftshift(bb_init, 7) & notHFile
+			if (bb_pos_adv & bb_final).any():
 				return True
-			if self.pieces[-team][PAWN][pos_bb - 9]:
+
+			bb_pos_adv = leftshift(bb_init, 9) & notAFile
+			if (bb_pos_adv & bb_final).any():
 				return True
+
+		bb_init = self.pieces[team][KNIGHT]
 		# KNIGHT
-		if self.pieces[-team][KNIGHT][pos_bb + 10]:
+		if (rightshift(bb_init, 17) & notAFile & bb_final).any():
 			return True
-		if self.pieces[-team][KNIGHT][pos_bb + 6]:
+		if (rightshift(bb_init, 10) & notABFile & bb_final).any():
 			return True
-		if self.pieces[-team][KNIGHT][pos_bb + 17]:
+		if (leftshift(bb_init, 6) & notABFile & bb_final).any():
 			return True
-		if self.pieces[-team][KNIGHT][pos_bb + 15]:
+		if (leftshift(bb_init, 15) & notAFile & bb_final).any():
 			return True
-		if self.pieces[-team][KNIGHT][pos_bb - 10]:
+		if (rightshift(bb_init, 15) & notHFile & bb_final).any():
 			return True
-		if self.pieces[-team][KNIGHT][pos_bb - 6]:
+		if (rightshift(bb_init, 6) & notGHFile & bb_final).any():
 			return True
-		if self.pieces[-team][KNIGHT][pos_bb - 17]:
+		if (leftshift(bb_init, 10) & notGHFile & bb_final).any():
 			return True
-		if self.pieces[-team][KNIGHT][pos_bb - 15]:
+		if (leftshift(bb_init, 17) & notHFile & bb_final).any():
 			return True
+
 		# QUEEN
-		qp = _get_queen_pos(-team)
-		if qp = -1:
+		qp = self._get_queen_pos(-team)
+		if qp == -1:
 			return False
-		if queen_position:
-			if (qp-pos_bb) % 9 == 0:
+		else:
+			if (qp-index) % 9 == 0:
 				return True
-			if (qp-pos_bb) % 7 == 0:
+			if (qp-index) % 7 == 0:
 				return True
-			if (qp-pos_bb) % 8 == 0:
+			if (qp-index) % 8 == 0:
 				return True
-			if (qp / 8 == pos_bb / 8):
+			if (qp / 8 == index / 8):
 				return True
 		return False
 
@@ -289,7 +304,7 @@ class BitBoard(object):
 
 	def _get_queen_pos(self, team):
 		for i in xrange(0, 63):
-			if self.pieces[team][piece_type]:
+			if self.pieces[team][QUEEN].any():
 				return i
 		return -1
 
