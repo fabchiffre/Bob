@@ -77,13 +77,16 @@ class Move(object):
 		res = 0
 		if self.capture:
 			res += valPoint[self.capture_type]
-		
+
 		if bitboard.is_attacked(self.pos_final_bb, self.pos_final[0], self.pos_final[1], -self.team):
 			res -= valPoint[self.piece_type]
 		else:
 			if self.piece_type == PAWN:
 				res += incrRowValue[self.team][self.pos_final[0]]
-		return res
+		if self.team == bitboard.my_team:
+			return res
+		else:
+			return -res
 
 	def apply(self, board):
 		new_board = copy.deepcopy(board)
