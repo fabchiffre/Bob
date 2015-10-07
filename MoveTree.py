@@ -65,7 +65,7 @@ class MoveTree(object):
 	def compute_alpha_beta_incr(self, prev_score):
 		global alpha
 		global beta
-		delta = self.bitboard.compute_delta(this.move)
+		delta = self.move.compute_delta(self.bitboard)
 		score = prev_score + delta
 		if not self.children:
 			return score

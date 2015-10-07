@@ -25,7 +25,11 @@ row7File = bitarray('11111111000000000000000000000000000000000000000000000000000
 rowFile = [row0File, row1File, row2File, row3File, row4File, row5File, row6File, row7File]
 rowValue = {}
 rowValue[BLACK] = [0, 1, 2, 4, 8, 16, 32, 100000]
-rowValue[WHITE] = [100000, 32, 16, 8, 4 , 2, 1, 0]
+rowValue[WHITE] = [100000, 32, 16, 8, 4, 2, 1, 0]
+
+incrRowValue = {}
+incrRowValue[BLACK] = [0, 0, 1, 3, 4, 8, 16, 100000]
+incrRowValue[WHITE] = [100000, 16, 8, 4, 2, 1, 0, 0]
 
 coefDistPawn = 0.2
 
@@ -69,6 +73,15 @@ class Move(object):
 		self.capture = capture
 		self.capture_type = capture_type
 
+	def compute_delta(self, bitboard):
+		res = 0
+		res += valPoint[self.capture_type]
+		if is_attacked(self.pos_final_bb, self.team):
+			res -= valPoint[self.piece_type]
+		else:
+			if self.piece_type == PAWN:
+				res += incrRowValue[team][pos_final[0]]
+		return res
 
 	def apply(self, board):
 		new_board = copy.deepcopy(board)
@@ -185,8 +198,100 @@ class BitBoard(object):
 			res += pop * rowValue[team][x]
 		return res
 
-	def compute_delta:
-		return 0
+	def get_attacking(self, pos_bb, team):
+		res = []
+		queen_position = _get_positions(team, QUEEN)
+		knights_position = _get_positions(team, KNIGHT)
+		pawns_position = _get_positions(team, PAWN)
+		nb_pawns = 0
+		nb_knights = 0
+		nb_queen = 0
+		# PAWN
+		if team == WHITE:
+			if pawns_position.count(pos_bb + 7):
+				nb_pawns += 1
+			if pawns_position.count(pos_bb + 9):
+				nb_pawns += 1
+		else:
+			if pawns_position.count(pos_bb - 7):
+				nb_pawns += 1
+			if pawns_position.count(pos_bb - 9):
+				nb_pawns += 1
+		# KNIGHT
+		if knights_position.count():
+			nb_knights += 1
+		# QUEEN
+		if queen_position:
+			qp = queen_position[0]
+			if (qp-pos_bb) % 9 == 0:
+				nb_queen += 1
+			if (qp-pos_bb) % 7 == 0:
+				nb_queen += 1
+			if (qp-pos_bb) % 8 == 0:
+				nb_queen += 1
+			if (qp / 8 == pos_bb / 8):
+				nb_queen += 1
+		res += nb_pawns * valPoint[PAWN]
+		res += nb_knights * valPoint[KNIGHT]
+		res += nb_queen * valPoint[QUEEN]
+		return res
+
+	def is_attacked(self, pos_bb, team):
+		# PAWN
+		if team == WHITE:
+			if self.pieces[-team][PAWN][pos_bb + 7]:
+				return True
+			if self.pieces[-team][PAWN][pos_bb + 9]:
+				return True
+		else:
+			if self.pieces[-team][PAWN][pos_bb - 7]:
+				return True
+			if self.pieces[-team][PAWN][pos_bb - 9]:
+				return True
+		# KNIGHT
+		if self.pieces[-team][KNIGHT][pos_bb + 10]:
+			return True
+		if self.pieces[-team][KNIGHT][pos_bb + 6]:
+			return True
+		if self.pieces[-team][KNIGHT][pos_bb + 17]:
+			return True
+		if self.pieces[-team][KNIGHT][pos_bb + 15]:
+			return True
+		if self.pieces[-team][KNIGHT][pos_bb - 10]:
+			return True
+		if self.pieces[-team][KNIGHT][pos_bb - 6]:
+			return True
+		if self.pieces[-team][KNIGHT][pos_bb - 17]:
+			return True
+		if self.pieces[-team][KNIGHT][pos_bb - 15]:
+			return True
+		# QUEEN
+		qp = _get_queen_pos(-team)
+		if qp = -1:
+			return False
+		if queen_position:
+			if (qp-pos_bb) % 9 == 0:
+				return True
+			if (qp-pos_bb) % 7 == 0:
+				return True
+			if (qp-pos_bb) % 8 == 0:
+				return True
+			if (qp / 8 == pos_bb / 8):
+				return True
+		return False
+
+	def _get_positions(self, team, piece_type):
+		res = []
+		for i in xrange(0, 63):
+			if self.pieces[team][piece_type]:
+				res.append(i)
+		return res
+
+	def _get_queen_pos(self, team):
+		for i in xrange(0, 63):
+			if self.pieces[team][piece_type]:
+				return i
+		return -1
 
 	def generate(self, team):
 		adv = bitarray(64)
