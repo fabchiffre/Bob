@@ -42,7 +42,6 @@ class MoveTree(object):
 	def compute_alpha_beta(self):
 		global alpha
 		global beta
-		delta = self.bitboard.compute_delta(this.move)
 		if not self.children:
 			return self.get_heuristic()
 		if self.isMin:

@@ -185,6 +185,9 @@ class BitBoard(object):
 			res += pop * rowValue[team][x]
 		return res
 
+	def compute_delta:
+		return 0
+
 	def generate(self, team):
 		adv = bitarray(64)
 		adv.setall(0)
