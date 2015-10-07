@@ -24,8 +24,8 @@ row7File = bitarray('11111111000000000000000000000000000000000000000000000000000
 
 rowFile = [row0File, row1File, row2File, row3File, row4File, row5File, row6File, row7File]
 rowValue = {}
-rowValue[BLACK] = [0, 1, 2, 4, 8, 16, 32, 100000]
-rowValue[WHITE] = [100000, 32, 16, 8, 4, 2, 1, 0]
+rowValue[BLACK] = [0, 1, 2, 4, 8, 16, 32, 1000000]
+rowValue[WHITE] = [1000000,  32, 16, 8, 4, 2, 1, 0]
 
 incrRowValue = {}
 incrRowValue[WHITE] = [0, 0, 1, 3, 4, 8, 16, 100000]
@@ -203,7 +203,7 @@ class BitBoard(object):
 		if team == WHITE:
 			mask = row7File
 		lastLinePawn = self.pieces[team][PAWN] & mask
-		return (lastLinePawn != 0)
+		return (lastLinePawn .any())
 
 	def distPawn(self, team):
 		res = 0
