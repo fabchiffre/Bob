@@ -82,13 +82,16 @@ class Move(object):
 		if self.capture:
 			res += valPoint[self.capture_type]
 			if self.capture_type == PAWN:
-				res += incrRowValue[-self.team][self.pos_final[0]] * coefDistPawn
+				#
+				res += incrRowValue[self.team][self.pos_final[0]] * coefDistPawn
 
 		if bitboard.is_attacked(self.pos_final_bb, self.pos_final[0], self.pos_final[1], -self.team):
 			res -= valPoint[self.piece_type]
 		else:
 			if self.piece_type == PAWN:
-				res += incrRowValue[self.team][self.pos_final[0]] * coefDistPawn
+				# The pos_final[0] is in the reverse order of incrRowValue. So we use the value
+				# of the opposite team.
+				res += incrRowValue[-self.team][self.pos_final[0]] * coefDistPawn
 
 		if self.team == bitboard.my_team:
 			return res
@@ -173,9 +176,9 @@ class BitBoard(object):
 	def heuristic(self):
 		# check winners
 		if self.wins(self.my_team):
-			return float('inf')
+			return 1000000
 		if self.wins(-self.my_team):
-			return float('-inf')
+			return -1000000
 		# compute value
 		res = 0
 		# diff of pieces value
@@ -263,11 +266,11 @@ class BitBoard(object):
 			if (bb_pos_adv & bb_final).any():
 				return True
 		else:
-			bb_pos_adv = leftshift(bb_init, 7) & notHFile
+			bb_pos_adv = leftshift(bb_init, 7) & notAFile
 			if (bb_pos_adv & bb_final).any():
 				return True
 
-			bb_pos_adv = leftshift(bb_init, 9) & notAFile
+			bb_pos_adv = leftshift(bb_init, 9) & notHFile
 			if (bb_pos_adv & bb_final).any():
 				return True
 
@@ -363,8 +366,8 @@ class BitBoard(object):
 				bb_final_1 = rightshift(bb_init, 7) & adv & notHFile
 				bb_final_2 = rightshift(bb_init, 9) & adv & notAFile
 			else:
-				bb_final_1 = leftshift(bb_init, 7) & adv & notHFile
-				bb_final_2 = leftshift(bb_init, 9) & adv & notAFile
+				bb_final_1 = leftshift(bb_init, 7) & adv & notAFile
+				bb_final_2 = leftshift(bb_init, 9) & adv & notHFile
 
 			self._check_move(team, PAWN, pos_init, bb_final_1, moves)
 			self._check_move(team, PAWN, pos_init, bb_final_2, moves)

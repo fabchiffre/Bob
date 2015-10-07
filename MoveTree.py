@@ -92,8 +92,7 @@ class MoveTree(object):
 		global beta
 		beta = float('-inf')
 
-		best_move = self.children[0]
-		best_val = -100000
+		best_move = None
 		for n in self.children:
 			val = n.compute_alpha_beta_incr(self.get_heuristic())
 			if best_move == None or best_val < val:
