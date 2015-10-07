@@ -74,13 +74,11 @@ class Move(object):
 		self.capture_type = capture_type
 
 	def compute_delta(self, bitboard):
+		if bitboard.wins(bitboard.my_team):
+			return 100000
+		if bitboard.wins(-bitboard.my_team):
+			return -100000
 		res = 0
-		if self.piece_type == PAWN:
-			if self.team ==  WHITE and self.pos_final[0] == 7:
-				return 1000000
-			elif self.team == BLACK and self.pos_final[0] == 0:
-				return 1000000
-
 		if self.capture:
 			res += valPoint[self.capture_type]
 			if self.capture_type == PAWN:
@@ -91,7 +89,7 @@ class Move(object):
 		else:
 			if self.piece_type == PAWN:
 				res += incrRowValue[self.team][self.pos_final[0]] * coefDistPawn
-		
+
 		if self.team == bitboard.my_team:
 			return res
 		else:
@@ -199,12 +197,12 @@ class BitBoard(object):
 		otherPieces = self.pieces[-team][PAWN]
 		if otherPieces.count() == 0:
 			return True
-		# # pawn on last line
-		# mask = row0File
-		# if team == WHITE:
-		# 	mask = row7File
-		# lastLinePawn = self.pieces[team][PAWN] & mask
-		# return (lastLinePawn != 0)
+		# pawn on last line
+		mask = row0File
+		if team == WHITE:
+			mask = row7File
+		lastLinePawn = self.pieces[team][PAWN] & mask
+		return (lastLinePawn != 0)
 
 	def distPawn(self, team):
 		res = 0
