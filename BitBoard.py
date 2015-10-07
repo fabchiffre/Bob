@@ -75,14 +75,23 @@ class Move(object):
 
 	def compute_delta(self, bitboard):
 		res = 0
+		if self.piece_type == PAWN:
+			if self.team ==  WHITE and self.pos_final[0] == 7:
+				return 1000000
+			elif self.team == BLACK and self.pos_final[0] == 0:
+				return 1000000
+
 		if self.capture:
 			res += valPoint[self.capture_type]
+			if self.capture_type == PAWN:
+				res += incrRowValue[-self.team][self.pos_final[0]] * coefDistPawn
 
 		if bitboard.is_attacked(self.pos_final_bb, self.pos_final[0], self.pos_final[1], -self.team):
 			res -= valPoint[self.piece_type]
 		else:
 			if self.piece_type == PAWN:
-				res += incrRowValue[self.team][self.pos_final[0]]
+				res += incrRowValue[self.team][self.pos_final[0]] * coefDistPawn
+		
 		if self.team == bitboard.my_team:
 			return res
 		else:
