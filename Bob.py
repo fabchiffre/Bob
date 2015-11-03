@@ -25,20 +25,15 @@ class BobClient(LiacBot):
 		print 'Generating a move...',
 		board = BitBoard(state=state, my_team=self.my_team)
 
-		if self.move_tree != None:
-			self.move_tree = self.move_tree.get_right_child(bitboard=board)
+		self.move_tree = MoveTree(bitboard=board)
 
-		if self.move_tree == None:
-			''' Construct the first instance '''
-			self.move_tree = MoveTree(bitboard=board)
+		self.build_children_withdepth(self, depth=3)
 
-		self.move_tree.root_build_children(t_zero)
 		self.move_tree = self.move_tree.get_best_move()
+
 		self.send_move(self.move_tree.move.pos_init, self.move_tree.move.pos_final)
 
-		''' Temporarly '''
 		print str(self.move_tree.move.pos_init) + ", " + str(self.move_tree.move.pos_final)
-		# self.move_tree = None
 
 	def on_game_over(self, state):
 		print "Game Over"
