@@ -162,11 +162,11 @@ class BitBoard(object):
 	def _check_move(self, team, type_p, pos_init, bb_final, moves):
 		if bb_final.any():
 			pos_final = bb_final.index(1)
-			if (self.pieces[team][PAWN] & bb_final).any():
+			if (self.pieces[-team][PAWN] & bb_final).any():
 				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=PAWN))
-			elif (self.pieces[team][KNIGHT] & bb_final).any():
+			elif (self.pieces[-team][KNIGHT] & bb_final).any():
 				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=KNIGHT))
-			elif (self.pieces[team][QUEEN] & bb_final).any():
+			elif (self.pieces[-team][QUEEN] & bb_final).any():
 				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=QUEEN))
 			else:
 				moves.append(Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=False))
