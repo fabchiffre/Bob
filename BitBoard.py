@@ -55,6 +55,7 @@ def rightshift(ba, count):
 
 class Move(object):
 	def __init__(self, team, piece_type, pos_init, pos_final, capture=False, capture_type=None):
+				
 		self.team = team
 		self.piece_type = piece_type
 		self.pos_init = pos_init
@@ -88,7 +89,6 @@ class Move(object):
 			res -= valPoint[self.piece_type]
 		else:
 			if self.piece_type == PAWN:
-
 				res += incrRowValue[self.team][self.pos_final[0]] * coefDistPawn
 
 		if self.team == bitboard.my_team:
@@ -162,11 +162,11 @@ class BitBoard(object):
 	def _check_move(self, team, type_p, pos_init, bb_final, moves):
 		if bb_final.any():
 			pos_final = bb_final.index(1)
-			if (self.pieces[-self.my_team][PAWN] & bb_final).any():
+			if (self.pieces[team][PAWN] & bb_final).any():
 				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=PAWN))
-			elif (self.pieces[-self.my_team][KNIGHT] & bb_final).any():
+			elif (self.pieces[team][KNIGHT] & bb_final).any():
 				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=KNIGHT))
-			elif (self.pieces[-self.my_team][QUEEN] & bb_final).any():
+			elif (self.pieces[team][QUEEN] & bb_final).any():
 				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=QUEEN))
 			else:
 				moves.append(Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=False))
@@ -192,7 +192,7 @@ class BitBoard(object):
 	def wins(self, team):
 		# no pawn on our side = LOSE
 		pieces = self.pieces[team][PAWN]
-		if pieces.count() == 0:
+		if pieces.count() == 0:			
 			return False
 		# no pawn on other side = WIN
 		otherPieces = self.pieces[-team][PAWN]

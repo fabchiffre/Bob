@@ -49,18 +49,18 @@ class MoveTree(object):
 			v = float('inf')
 			for child in self.children:
 				v = min(v, child.compute_alpha_beta())
-				alpha = min(alpha, v)
-				if alpha >= beta:
-					break
+				if alpha >= v:
+					return v
+				beta = min(beta, v)
 			return v
 
 		else:
 			v = float('-inf')
 			for child in self.children:
 				v = max(v, child.compute_alpha_beta())
-				beta = max(beta, v)
-				if alpha >= beta:
-					break
+				if v >= beta:
+					return v
+				alpha = max(alpha, v)
 			return v
 
 	def compute_alpha_beta_incr(self, prev_score):
@@ -89,9 +89,9 @@ class MoveTree(object):
 
 	def get_best_move(self):
 		global alpha
-		alpha = float('inf')
+		alpha = float('-inf')
 		global beta
-		beta = float('-inf')
+		beta = float('inf')
 
 		best_move = None
 		for n in self.children:
