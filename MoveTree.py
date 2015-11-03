@@ -16,14 +16,15 @@ class MoveTree(object):
 		self.depth = depth
 
 	def build_children_withdepth(self, depth=0):
-		if self.isMin:
-			nextMoves = self.bitboard.generate(-self.bitboard.my_team)
-		else:
-			nextMoves = self.bitboard.generate(self.bitboard.my_team)
-		for m in nextMoves:
-			node = MoveTree(m.apply(self.bitboard), m, not self.isMin, depth-1)
-			node.build_children_withdepth(depth-1)
-			self.children.append(node)
+		if depth > 0:
+			if self.isMin:
+				nextMoves = self.bitboard.generate(-self.bitboard.my_team)
+			else:
+				nextMoves = self.bitboard.generate(self.bitboard.my_team)
+			for m in nextMoves:
+				node = MoveTree(m.apply(self.bitboard), m, not self.isMin, depth-1)
+				node.build_children_withdepth(depth-1)
+				self.children.append(node)
 		return self.children
 
 	def build_children(self):

@@ -27,7 +27,7 @@ class BobClient(LiacBot):
 
 		self.move_tree = MoveTree(bitboard=board)
 
-		self.build_children_withdepth(self, depth=3)
+		self.move_tree.build_children_withdepth(depth=3)
 
 		self.move_tree = self.move_tree.get_best_move()
 
