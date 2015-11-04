@@ -1,4 +1,5 @@
 import copy
+import random
 from bitarray import *
 
 WHITE = 1
@@ -45,7 +46,7 @@ def print_bitboard(bb):
 		for i in range(7, -1, -1):
 			for j in range(0, 8):
 				print(bb[i*8 + j]),
-			print "\n"
+			print("\n")
 
 def leftshift(ba, count):
 	return ba[count:] + (bitarray('0') * count)
@@ -74,27 +75,27 @@ class Move(object):
 		self.capture = capture
 		self.capture_type = capture_type
 
-	def compute_delta(self, bitboard):
-		if bitboard.wins(self.team):
-			return 100000
-		if bitboard.wins(-self.team):
-			return -100000
-		res = 0
-		if self.capture:
-			res += valPoint[self.capture_type]
-			if self.capture_type == PAWN:
-				res += incrRowValue[-self.team][self.pos_final[0]] * coefDistPawn
+	# def compute_delta(self, bitboard):
+	# 	if bitboard.wins(self.team):
+	# 		return 100000
+	# 	if bitboard.wins(-self.team):
+	# 		return -100000
+	# 	res = 0
+	# 	if self.capture:
+	# 		res += valPoint[self.capture_type]
+	# 		if self.capture_type == PAWN:
+	# 			res += incrRowValue[-self.team][self.pos_final[0]] * coefDistPawn
 
-		if bitboard.is_attacked(self.pos_final_bb, self.pos_final[0], self.pos_final[1], -self.team):
-			res -= valPoint[self.piece_type]
-		else:
-			if self.piece_type == PAWN:
-				res += incrRowValue[self.team][self.pos_final[0]] * coefDistPawn
+	# 	if bitboard.is_attacked(self.pos_final_bb, self.pos_final[0], self.pos_final[1], -self.team):
+	# 		res -= valPoint[self.piece_type]
+	# 	else:
+	# 		if self.piece_type == PAWN:
+	# 			res += incrRowValue[self.team][self.pos_final[0]] * coefDistPawn
 
-		if self.team == bitboard.my_team:
-			return res
-		else:
-			return -res
+	# 	if self.team == bitboard.my_team:
+	# 		return res
+	# 	else:
+	# 		return -res
 
 	def apply(self, board):
 		new_board = copy.deepcopy(board)
@@ -149,25 +150,25 @@ class BitBoard(object):
 			self.pieces[BLACK][KNIGHT] = bitarray(bitboard.pieces[WHITE][PAWN])
 
 
-	def equals(self, bitboard):
-		ans = True
-		ans &= ( bitdiff(self.pieces[BLACK][PAWN], bitboard.pieces[BLACK][PAWN]) == 0 )
-		ans &= ( bitdiff(self.pieces[WHITE][PAWN], bitboard.pieces[WHITE][PAWN]) == 0 )
-		ans &= ( bitdiff(self.pieces[BLACK][QUEEN], bitboard.pieces[BLACK][QUEEN]) == 0 )
-		ans &= ( bitdiff(self.pieces[WHITE][QUEEN], bitboard.pieces[WHITE][QUEEN]) == 0 )
-		ans &= ( bitdiff(self.pieces[BLACK][KNIGHT], bitboard.pieces[BLACK][KNIGHT]) == 0 )
-		ans &= ( bitdiff(self.pieces[WHITE][KNIGHT], bitboard.pieces[WHITE][KNIGHT]) == 0 )
-		return ans;
+	# def equals(self, bitboard):
+	# 	ans = True
+	# 	ans &= ( bitdiff(self.pieces[BLACK][PAWN], bitboard.pieces[BLACK][PAWN]) == 0 )
+	# 	ans &= ( bitdiff(self.pieces[WHITE][PAWN], bitboard.pieces[WHITE][PAWN]) == 0 )
+	# 	ans &= ( bitdiff(self.pieces[BLACK][QUEEN], bitboard.pieces[BLACK][QUEEN]) == 0 )
+	# 	ans &= ( bitdiff(self.pieces[WHITE][QUEEN], bitboard.pieces[WHITE][QUEEN]) == 0 )
+	# 	ans &= ( bitdiff(self.pieces[BLACK][KNIGHT], bitboard.pieces[BLACK][KNIGHT]) == 0 )
+	# 	ans &= ( bitdiff(self.pieces[WHITE][KNIGHT], bitboard.pieces[WHITE][KNIGHT]) == 0 )
+	# 	return ans;
 
-	def _check_move(self, team, type_p, pos_init, bb_final, moves):
+	def _check_move(self, team, type_p, pos_init, bb_final, moves, headMoves):
 		if bb_final.any():
 			pos_final = bb_final.index(1)
 			if (self.pieces[-team][PAWN] & bb_final).any():
-				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=PAWN))
+				headMoves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=PAWN))
 			elif (self.pieces[-team][KNIGHT] & bb_final).any():
-				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=KNIGHT))
+				headMoves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=KNIGHT))
 			elif (self.pieces[-team][QUEEN] & bb_final).any():
-				moves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=QUEEN))
+				headMoves.insert(0, Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=True, capture_type=QUEEN))
 			else:
 				moves.append(Move(team, type_p, (pos_init/8, pos_init%8), (pos_final/8, pos_final%8), capture=False))
 
@@ -194,16 +195,26 @@ class BitBoard(object):
 		pieces = self.pieces[team][PAWN]
 		if pieces.count() == 0:			
 			return False
+
 		# no pawn on other side = WIN
 		otherPieces = self.pieces[-team][PAWN]
 		if otherPieces.count() == 0:
 			return True
+
+
 		# pawn on last line
-		mask = row0File
+		mask = row7File
 		if team == WHITE:
-			mask = row7File
+			mask = row0File
 		lastLinePawn = self.pieces[team][PAWN] & mask
+		
 		return (lastLinePawn .any())
+
+	def winning(self):
+		return self.wins(self.my_team)
+
+	def losing(self):
+		return self.wins(-self.my_team)
 
 	def distPawn(self, team):
 		res = 0
@@ -335,13 +346,19 @@ class BitBoard(object):
 		empty = ~empty
 
 		moves = []
-		self._generate_pawn(team, adv, empty, moves)
-		self._generate_knight(team, adv, empty, moves)
-		self._generate_queen(team, adv, empty, moves)
+		headMoves = []
 
-		return moves
+		self._generate_pawn(team, adv, empty, moves, headMoves)
+		self._generate_knight(team, adv, empty, moves, headMoves)
+		self._generate_queen(team, adv, empty, moves, headMoves)
 
-	def _generate_pawn(self, team, adv, empty, moves):
+
+		headMoves = random.sample(headMoves, len(headMoves))
+		moves = random.sample(moves, len(moves))
+
+		return headMoves + moves
+
+	def _generate_pawn(self, team, adv, empty, moves, headMoves):
 		pawns =  bitarray(self.pieces[team][PAWN])
 		''' Loop for each pawn '''
 		while(pawns.any()):
@@ -357,7 +374,7 @@ class BitBoard(object):
 			else:
 				bb_final = leftshift(bb_init, 8) & empty
 
-			self._check_move(team, PAWN, pos_init, bb_final, moves)
+			self._check_move(team, PAWN, pos_init, bb_final, moves, headMoves)
 
 			# Normal capture
 			if team == WHITE:
@@ -367,12 +384,12 @@ class BitBoard(object):
 				bb_final_1 = leftshift(bb_init, 7) & adv & notAFile
 				bb_final_2 = leftshift(bb_init, 9) & adv & notHFile
 
-			self._check_move(team, PAWN, pos_init, bb_final_1, moves)
-			self._check_move(team, PAWN, pos_init, bb_final_2, moves)
+			self._check_move(team, PAWN, pos_init, bb_final_1, moves, headMoves)
+			self._check_move(team, PAWN, pos_init, bb_final_2, moves, headMoves)
 
 			pawns ^= bb_init
 
-	def _generate_knight(self, team, adv, empty, moves):
+	def _generate_knight(self, team, adv, empty, moves, headMoves):
 		knights =  bitarray(self.pieces[team][KNIGHT])
 
 		''' Loop for each pawn '''
@@ -384,42 +401,42 @@ class BitBoard(object):
 			bb_init[pos_init] = 1
 
 			bb_final = rightshift(bb_init, 17) & notAFile & (empty | adv)
-			self._check_move(team, KNIGHT, pos_init, bb_final, moves)
+			self._check_move(team, KNIGHT, pos_init, bb_final, moves, headMoves)
 
 			bb_final = rightshift(bb_init, 10) & notABFile & (empty | adv)
-			self._check_move(team, KNIGHT, pos_init, bb_final, moves)
+			self._check_move(team, KNIGHT, pos_init, bb_final, moves, headMoves)
 
 			bb_final = leftshift(bb_init, 6) & notABFile & (empty | adv)
-			self._check_move(team, KNIGHT, pos_init, bb_final, moves)
+			self._check_move(team, KNIGHT, pos_init, bb_final, moves, headMoves)
 
 			bb_final = leftshift(bb_init, 15) & notAFile & (empty | adv)
-			self._check_move(team, KNIGHT, pos_init, bb_final, moves)
+			self._check_move(team, KNIGHT, pos_init, bb_final, moves, headMoves)
 
 			bb_final = rightshift(bb_init, 15) & notHFile & (empty | adv)
-			self._check_move(team, KNIGHT, pos_init, bb_final, moves)
+			self._check_move(team, KNIGHT, pos_init, bb_final, moves, headMoves)
 
 			bb_final = rightshift(bb_init, 6) & notGHFile & (empty | adv)
-			self._check_move(team, KNIGHT, pos_init, bb_final, moves)
+			self._check_move(team, KNIGHT, pos_init, bb_final, moves, headMoves)
 
 			bb_final = leftshift(bb_init, 10) & notGHFile & (empty | adv)
-			self._check_move(team, KNIGHT, pos_init, bb_final, moves)
+			self._check_move(team, KNIGHT, pos_init, bb_final, moves, headMoves)
 
 			bb_final = leftshift(bb_init, 17) & notHFile & (empty | adv)
-			self._check_move(team, KNIGHT, pos_init, bb_final, moves)
+			self._check_move(team, KNIGHT, pos_init, bb_final, moves, headMoves)
 
 
 			knights ^= bb_init
 
-	def _generate_queen(self, team, adv, empty, moves):
+	def _generate_queen(self, team, adv, empty, moves, headMoves):
 		if self.pieces[team][QUEEN].any():
 			pos_init = self.pieces[team][QUEEN].index(1)
-			self._generate_rook(team, adv, empty, moves)
-			self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=1, col_dir=1) # TOPRIGHT
-			self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=1, col_dir=-1) # TOPLEFT
-			self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=-1, col_dir=-1) # BOTTOMLEFT
-			self._generate_bishop(team, pos_init, empty, adv, moves, row_dir=-1, col_dir=1) # BOTTOMRIGHT
+			self._generate_rook(team, adv, empty, moves, headMoves)
+			self._generate_bishop(team, pos_init, empty, adv, moves, headMoves, row_dir=1, col_dir=1) # TOPRIGHT
+			self._generate_bishop(team, pos_init, empty, adv, moves, headMoves, row_dir=1, col_dir=-1) # TOPLEFT
+			self._generate_bishop(team, pos_init, empty, adv, moves, headMoves, row_dir=-1, col_dir=-1) # BOTTOMLEFT
+			self._generate_bishop(team, pos_init, empty, adv, moves, headMoves, row_dir=-1, col_dir=1) # BOTTOMRIGHT
 
-	def _generate_rook(self, team, adv, empty, moves):
+	def _generate_rook(self, team, adv, empty, moves, headMoves):
 		pos_init = self.pieces[team][QUEEN].index(1)
 		pos_init_y = pos_init / 8
 		pos_init_x = pos_init % 8
@@ -429,12 +446,12 @@ class BitBoard(object):
 				bb_final = bitarray(64)
 				bb_final.setall(0)
 				bb_final[pos_init - i] = 1
-				self._check_move(team, QUEEN, pos_init, bb_final, moves)
+				self._check_move(team, QUEEN, pos_init, bb_final, moves, headMoves)
 			elif adv[pos_init-i]:
 				bb_final = bitarray(64)
 				bb_final.setall(0)
 				bb_final[pos_init -i] = 1
-				self._check_move(team, QUEEN, pos_init, bb_final, moves)
+				self._check_move(team, QUEEN, pos_init, bb_final, moves, headMoves)
 				break
 			else:
 				break
@@ -445,12 +462,12 @@ class BitBoard(object):
 				bb_final = bitarray(64)
 				bb_final.setall(0)
 				bb_final[pos_init + i] = 1
-				self._check_move(team, QUEEN, pos_init, bb_final, moves)
+				self._check_move(team, QUEEN, pos_init, bb_final, moves, headMoves)
 			elif adv[pos_init+i]:
 				bb_final = bitarray(64)
 				bb_final.setall(0)
 				bb_final[pos_init + i] = 1
-				self._check_move(team, QUEEN, pos_init, bb_final, moves)
+				self._check_move(team, QUEEN, pos_init, bb_final, moves, headMoves)
 				break
 			else:
 				break
@@ -461,12 +478,12 @@ class BitBoard(object):
 				bb_final = bitarray(64)
 				bb_final.setall(0)
 				bb_final[pos_init - i * 8] = 1
-				self._check_move(team, QUEEN, pos_init, bb_final, moves)
+				self._check_move(team, QUEEN, pos_init, bb_final, moves, headMoves)
 			elif adv[pos_init - i * 8]:
 				bb_final = bitarray(64)
 				bb_final.setall(0)
 				bb_final[pos_init - i * 8] = 1
-				self._check_move(team, QUEEN, pos_init, bb_final, moves)
+				self._check_move(team, QUEEN, pos_init, bb_final, moves, headMoves)
 				break
 			else:
 				break
@@ -477,17 +494,17 @@ class BitBoard(object):
 				bb_final = bitarray(64)
 				bb_final.setall(0)
 				bb_final[pos_init + i * 8] = 1
-				self._check_move(team, QUEEN, pos_init, bb_final, moves)
+				self._check_move(team, QUEEN, pos_init, bb_final, moves, headMoves)
 			elif adv[pos_init + i * 8]:
 				bb_final = bitarray(64)
 				bb_final.setall(0)
 				bb_final[pos_init + i * 8] = 1
-				self._check_move(team, QUEEN, pos_init, bb_final, moves)
+				self._check_move(team, QUEEN, pos_init, bb_final, moves, headMoves)
 				break
 			else:
 				break
 
-	def _generate_bishop(self, team, pos_init, empty, adv, moves, row_dir, col_dir):
+	def _generate_bishop(self, team, pos_init, empty, adv, moves, headMoves, row_dir, col_dir):
 		my_row = pos_init / 8
 		my_col = pos_init % 8
 
@@ -503,7 +520,7 @@ class BitBoard(object):
 				bb_final = bitarray(64)
 				bb_final.setall(0)
 				bb_final[q_row * 8 + q_col] = 1
-				self._check_move(team, QUEEN, pos_init, bb_final, moves)
+				self._check_move(team, QUEEN, pos_init, bb_final, moves, headMoves) 
 				if adv[q_row * 8 + q_col]:
 					break
 			else:

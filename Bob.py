@@ -22,21 +22,27 @@ class BobClient(LiacBot):
 	def on_move(self, state):
 		t_zero = time.time()
 
+		self.my_team = state['who_moves']
+
 		print 'Generating a move...',
 		board = BitBoard(state=state, my_team=self.my_team)
 
 		self.move_tree = MoveTree(bitboard=board)
 
-		self.move_tree.build_children_withdepth(depth=3)
+		# if (self.my_team == WHITE and int(state['white_infractions']) < 4) or (self.my_team == BLACK and int(state['black_infractions']) < 4):
+		# 	best_move = self.move_tree.get_best_move_alpha_beta(5)
+		# else:
+		# 	best_move = self.move_tree.get_best_move_alpha_beta(4)
+		best_move = self.move_tree.root_alpha_beta_max_dynamic(5, t_zero)
 
-		self.move_tree = self.move_tree.get_best_move()
 
-		self.send_move(self.move_tree.move.pos_init, self.move_tree.move.pos_final)
+		self.send_move(best_move.pos_init, best_move.pos_final)
 
-		print str(self.move_tree.move.pos_init) + ", " + str(self.move_tree.move.pos_final)
+		print str(best_move.pos_init) + ", " + str(best_move.pos_final)
 
 	def on_game_over(self, state):
 		print "Game Over"
+		self._socket.close()
 		sys.exit()
 		
 	def start(self):
